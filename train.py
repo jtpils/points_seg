@@ -12,6 +12,7 @@ import torch.nn.functional as F
 
 from dataset.lidar import LidarDataset
 from model.pointnet import PointNetSeg
+import utils
 
 
 # configuration
@@ -36,10 +37,14 @@ def train_one_epoch(dataloader, optimizer, model):
     for i, (points, labels) in enumerate(dataloader):
         # (B, N, C) -> (B, C, N)
         points = points.transpose(2, 1)
+        # lable: FloatTensor -> LongTensor
+        labels = labels.long()
 
         points, labels = points.cuda(), labels.cuda()
         optimizer.zero_grad()
         preds = model(points)
+        preds = preds.view(-1, NUM_CLASSES)
+        labels = labels.view(-1, 1)[:, 0]
         loss = F.nll_loss(preds, labels)
         loss.backward()
         optimizer.step()
@@ -50,11 +55,13 @@ def train_one_epoch(dataloader, optimizer, model):
 def test_one_epoch(dataloader, model):
     model.eval()
     for i, (points, labels) in enumerate(dataloader):
-        # (B, N, C) -> (B, C, N)
         points = points.transpose(2, 1)
+        labels = labels.long()
 
         points, labels = points.cuda(), labels.cuda()
         preds = model(points)
+        preds = preds.view(-1, NUM_CLASSES)
+        labels = labels.view(-1, 1)[:, 0]
         loss = F.nll_loss(preds, labels)
 
         # TODO: compute acc and iou, print log

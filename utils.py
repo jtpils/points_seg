@@ -7,10 +7,16 @@ from __future__ import absolute_import
 
 import torch
 
-def index2onehot():
-    pass
+def index2onehot(label, num_classes):
+    batch_size = label.size(0)
+    labels_onehot = torch.FloatTensor(batch_size, 2, num_classes).type_as(label).zero_()
+    labels_onehot.scatter_(-1, label, 1)
+    return labels_onehot
 
 
 if __name__ == '__main__':
-    test = torch.LongTensor([[0, 1, 2, 3, 4, 5, 6, 7], [7, 6, 5, 4, 3, 2, 1, 0]])
+    test = torch.LongTensor([[0, 2], [7, 1]])
+    print (test.shape)
+    print (test.shape)
     print (test)
+    print (index2onehot(test, 8).shape)
