@@ -1,0 +1,16 @@
+/Users/katakuri/Documents/GitHub/point_seg/data/train/0/0d509a99-dfb5-4787-ae64-7f846cbe8575_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/0/2e3d421b-8f7b-4c61-a772-f4bbb2c0bc71_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/0/3b5ee46f-327c-432f-a0bb-2c939fcc6b01_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/0/7e0f7546-769a-4f5a-ae49-b09d2e773094_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/1/0d509a99-dfb5-4787-ae64-7f846cbe8575_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/1/2e3d421b-8f7b-4c61-a772-f4bbb2c0bc71_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/1/3b5ee46f-327c-432f-a0bb-2c939fcc6b01_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/1/7e0f7546-769a-4f5a-ae49-b09d2e773094_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/2/0d509a99-dfb5-4787-ae64-7f846cbe8575_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/2/2e3d421b-8f7b-4c61-a772-f4bbb2c0bc71_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/2/3b5ee46f-327c-432f-a0bb-2c939fcc6b01_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/2/7e0f7546-769a-4f5a-ae49-b09d2e773094_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/3/0d509a99-dfb5-4787-ae64-7f846cbe8575_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/3/2e3d421b-8f7b-4c61-a772-f4bbb2c0bc71_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/3/3b5ee46f-327c-432f-a0bb-2c939fcc6b01_channelVELO_TOP.npy
+/Users/katakuri/Documents/GitHub/point_seg/data/train/3/7e0f7546-769a-4f5a-ae49-b09d2e773094_channelVELO_TOP.npy
