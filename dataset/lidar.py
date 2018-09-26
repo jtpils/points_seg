@@ -54,11 +54,12 @@ class LidarDataset(data.Dataset):
 
 if __name__ == '__main__':
     pointset = LidarDataset(npoints = 8192, split = 'train')
-    pointloader = data.DataLoader(pointset, batch_size=1, num_workers=0, shuffle=False)
+    pointloader = data.DataLoader(pointset, batch_size=2, num_workers=0, shuffle=False)
+    print (len(pointset), len(pointloader))
     for index, (points, labels) in enumerate(pointloader):
         print (index, points.shape, labels.shape)
-        p1 = points.numpy()
-        p2 = labels.numpy()
+    #     p1 = points.numpy()
+    #     p2 = labels.numpy()
         # p1 = np.squeeze(p1, 0)
         # p2 = np.squeeze(p2, 0)
         # fig = draw_lidar_simple(p1, p2)
