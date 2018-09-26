@@ -6,10 +6,8 @@ import os
 import random
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as Data
-from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
