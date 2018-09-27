@@ -24,11 +24,13 @@ GPU_ID = '0'
 
 # hyper paprams
 BATCH_SIZE = 32
-NEPOCH = 30
+NEPOCH = 150
 MODEL = 'pointnet'
 NUM_POINTS = 8192
 NUM_CLASSES = 8
+GAMMA = 0.5
 MODEL_SET = set(['pointnet'])
+SCHEDULE = set([30, 60, 90, 120])
 
 
 # preprocess
@@ -109,6 +111,13 @@ def save_checkpoint(epoch, acc, model):
         os.mkdir(checkpoint_path)
     torch.save(checkpoint, checkpoint_path)
 
+def adjust_learning_rate(epoch, optimizer):
+    global state
+    if epoch in SCHEDULE:
+        state['lr'] *= GAMMA
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = state['lr']
+
 if __name__ == '__main__':
     # define the train/val dataloader
     print ('Loading Dataset.')
@@ -135,6 +144,7 @@ if __name__ == '__main__':
 
     best_acc = 0.0
     for epoch in range(NEPOCH):
+        adjust_learning_rate(epoch=epoch, optimizer=optimizer)
         train_one_epoch(epoch=epoch, dataloader=trainloader, optimizer=optimizer, model=model)
         acc = test_one_epoch(epoch=epoch, dataloader=valloader, model=model)
 
