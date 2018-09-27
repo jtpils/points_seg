@@ -2,10 +2,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import torch.utils.data as data
-import torch
 import numpy as np
-from dataset.vis  import draw_lidar_simple
-import mayavi.mlab as mlab
+# from dataset.vis  import draw_lidar_simple
+# import mayavi.mlab as mlab
 
 
 class LidarDataset(data.Dataset):
@@ -17,11 +16,11 @@ class LidarDataset(data.Dataset):
 
         # load paths file
         if self.split == 'train:':
-            self.pathfile = '../data/example.txt'
+            self.pathfile = './data/example.txt'
         elif self.split == 'val':
-            self.pathfile = '../data/example.txt'
+            self.pathfile = './data/example.txt'
         else:
-            self.pathfile = '../data/example.txt'
+            self.pathfile = './data/example.txt'
 
         # read file paths
         with open(self.pathfile) as f:

@@ -28,7 +28,7 @@ NEPOCH = 30
 MODEL = 'pointnet'
 NUM_POINTS = 8192
 NUM_CLASSES = 8
-MODEL_SET = set('pointnet')
+MODEL_SET = set(['pointnet'])
 
 
 # preprocess
@@ -41,7 +41,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = GPU_ID
 
 
 
-def train_one_epoch(dataloader, optimizer, model):
+def train_one_epoch(epoch, dataloader, optimizer, model):
+    print ('##### Train Epoch:%d #####' % (epoch))
     model.train()
     for i, (points, labels) in enumerate(dataloader):
         # (B, N, C) -> (B, C, N)
@@ -64,13 +65,13 @@ def train_one_epoch(dataloader, optimizer, model):
         printfreq = 1
         if i % printfreq == 0:
             print('[%d: %d] train loss: %f accuracy: %f' % (
-            i, len(dataloader), loss.data[0], correct / float(BATCH_SIZE * NUM_POINTS)))
+            i, len(dataloader), loss.data.item(), correct.item() / float(BATCH_SIZE * NUM_POINTS)))
 
 
-def test_one_epoch(dataloader, model):
+def test_one_epoch(epoch, dataloader, model):
+    print('##### Test Epoch:%d #####' % (epoch))
     model.eval()
     correct_all = 0
-    count_all = 0
     for i, (points, labels) in enumerate(dataloader):
         points = points.transpose(2, 1)
         labels = labels.long()
@@ -88,10 +89,10 @@ def test_one_epoch(dataloader, model):
         printfreq = 1
         if i % printfreq == 0:
             print('[%d: %d] train loss: %f accuracy: %f' % (
-            i, len(dataloader), loss.data[0], correct / float(BATCH_SIZE * NUM_POINTS)))
+            i, len(dataloader), loss.data.item(), correct.item() / float(BATCH_SIZE * NUM_POINTS)))
 
     count_all = BATCH_SIZE * NUM_POINTS * len(dataloader)
-    acc = correct_all / float(count_all)
+    acc = correct_all.item() / float(count_all)
     print('avg accuracy: %f' % (acc))
 
     return acc
@@ -110,6 +111,7 @@ def save_checkpoint(epoch, acc, model):
 
 if __name__ == '__main__':
     # define the train/val dataloader
+    print ('Loading Dataset.')
     trainset = LidarDataset(npoints=NUM_POINTS, split='train')
     trainloader = Data.DataLoader(trainset, batch_size=BATCH_SIZE,
                                   shuffle=True, num_workers=WORKERS)
@@ -119,20 +121,22 @@ if __name__ == '__main__':
                                 shuffle=False, num_workers=WORKERS)
 
     # define model
+    print('Loading Model.')
     assert MODEL in MODEL_SET, 'no such a model.'
     if MODEL == 'pointnet':
+        print('Loading PointNet.')
         model = PointNetSeg(num_points=NUM_POINTS, num_classes=NUM_CLASSES)
     else:
         model = PointNetSeg(num_points=NUM_POINTS, num_classes=NUM_CLASSES)
     model = model.cuda()
 
     # define optimizer
-    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
     best_acc = 0.0
     for epoch in range(NEPOCH):
-        train_one_epoch(dataloader=trainloader, optimizer=optimizer, model=model)
-        acc = test_one_epoch(dataloader=valloader, model=model)
+        train_one_epoch(epoch=epoch, dataloader=trainloader, optimizer=optimizer, model=model)
+        acc = test_one_epoch(epoch=epoch, dataloader=valloader, model=model)
 
         if acc > best_acc:
             best_acc = acc

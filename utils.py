@@ -15,4 +15,3 @@ if __name__ == '__main__':
     print (test.shape)
     print (test.shape)
     print (test)
-    print (index2onehot(test, 8).shape)
