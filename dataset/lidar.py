@@ -25,7 +25,7 @@ class LidarDataset(data.Dataset):
         # read file paths
         with open(self.pathfile) as f:
             for line in f.readlines():
-                self.pathlist.append(line.rstrip('\n'))
+                self.pathlist.append(line.rstrip('\r\n'))
 
 
     def __getitem__(self, index):

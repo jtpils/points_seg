@@ -23,14 +23,15 @@ OUTPUT_PATH = './checkpoints'
 GPU_ID = '0'
 
 # hyper paprams
-BATCH_SIZE = 32
-NEPOCH = 150
+BATCH_SIZE = 2
+EPOCH = 50
 MODEL = 'pointnet'
 NUM_POINTS = 8192
 NUM_CLASSES = 8
 GAMMA = 0.5
 MODEL_SET = set(['pointnet'])
-SCHEDULE = set([30, 60, 90, 120])
+SCHEDULE = set([10, 20, 30, 40])
+LEARNING_RATE = 0.001
 
 
 # preprocess
@@ -38,7 +39,7 @@ cudnn.benchmark = True
 torch.manual_seed(RANDOM_SEED) # cpu
 torch.cuda.manual_seed(RANDOM_SEED) #gpu
 np.random.seed(RANDOM_SEED) #numpy
-random.seed(7) #rand
+random.seed(RANDOM_SEED) #rand
 os.environ['CUDA_VISIBLE_DEVICES'] = GPU_ID
 
 
@@ -112,11 +113,11 @@ def save_checkpoint(epoch, acc, model):
     torch.save(checkpoint, checkpoint_path)
 
 def adjust_learning_rate(epoch, optimizer):
-    global state
+    global LEARNING_RATE
     if epoch in SCHEDULE:
-        state['lr'] *= GAMMA
+        LEARNING_RATE *= GAMMA
         for param_group in optimizer.param_groups:
-            param_group['lr'] = state['lr']
+            param_group['lr'] = LEARNING_RATE
 
 if __name__ == '__main__':
     # define the train/val dataloader
@@ -130,20 +131,20 @@ if __name__ == '__main__':
                                 shuffle=False, num_workers=WORKERS)
 
     # define model
-    print('Loading Model.')
     assert MODEL in MODEL_SET, 'no such a model.'
     if MODEL == 'pointnet':
         print('Loading PointNet.')
         model = PointNetSeg(num_points=NUM_POINTS, num_classes=NUM_CLASSES)
     else:
+        print('Loading PointNet.')
         model = PointNetSeg(num_points=NUM_POINTS, num_classes=NUM_CLASSES)
     model = model.cuda()
 
     # define optimizer
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
     best_acc = 0.0
-    for epoch in range(NEPOCH):
+    for epoch in range(EPOCH):
         adjust_learning_rate(epoch=epoch, optimizer=optimizer)
         train_one_epoch(epoch=epoch, dataloader=trainloader, optimizer=optimizer, model=model)
         acc = test_one_epoch(epoch=epoch, dataloader=valloader, model=model)
