@@ -9,10 +9,10 @@ DONE
 + Dataset 
 + Trainer
 + Data Preprocess
++ Code Test
 
 
 TODO
-+ Code Test
 + PointNet++
 + PointSift
 + Tensorboard
