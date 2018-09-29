@@ -6,13 +6,14 @@ PyTorch code for point cloud segmentation.
 
 DONE
 + PointNet 
-+ Dataset 
++ Train/Val Dataset 
 + Trainer
 + Data Preprocess
 + Code Test
++ Tensorboard
 
 
 TODO
 + PointNet++
 + PointSift
-+ Tensorboard
++ Test Dataset

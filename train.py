@@ -1,15 +1,16 @@
-
 from __future__ import print_function
 from __future__ import absolute_import
 
 import os
 import random
+
 import numpy as np
 import torch
 import torch.optim as optim
 import torch.utils.data as Data
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+from tensorboardX import SummaryWriter
 
 from dataset.lidar import LidarDataset
 from model.pointnet import PointNetSeg
@@ -23,18 +24,19 @@ OUTPUT_PATH = './checkpoints'
 GPU_ID = '0'
 
 # hyper paprams
-BATCH_SIZE = 2
-EPOCH = 50
+BATCH_SIZE = 4
+EPOCH = 30
 MODEL = 'pointnet'
 NUM_POINTS = 8192
 NUM_CLASSES = 8
-GAMMA = 0.5
+GAMMA = 0.2
 MODEL_SET = set(['pointnet'])
-SCHEDULE = set([10, 20, 30, 40])
+SCHEDULE = set([10, 20])
 LEARNING_RATE = 0.001
 
 
 # preprocess
+writer = SummaryWriter()
 cudnn.benchmark = True
 torch.manual_seed(RANDOM_SEED) # cpu
 torch.cuda.manual_seed(RANDOM_SEED) #gpu
@@ -47,6 +49,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = GPU_ID
 def train_one_epoch(epoch, dataloader, optimizer, model):
     print ('##### Train Epoch:%d #####' % (epoch))
     model.train()
+
     for i, (points, labels) in enumerate(dataloader):
         # (B, N, C) -> (B, C, N)
         points = points.transpose(2, 1)
@@ -64,11 +67,16 @@ def train_one_epoch(epoch, dataloader, optimizer, model):
 
         preds = preds.data.max(1)[1]
         correct = preds.eq(labels.data).cpu().sum()
+        acc = correct.item() / float(BATCH_SIZE * NUM_POINTS)
 
         printfreq = 1
         if i % printfreq == 0:
-            print('[%d: %d] train loss: %f accuracy: %f' % (
-            i, len(dataloader), loss.data.item(), correct.item() / float(BATCH_SIZE * NUM_POINTS)))
+            print('[%d: %d] train loss: %f accuracy: %f' % (i, len(dataloader), loss.item(), acc))
+
+        # log vis
+        writer.add_scalar('train loss', loss.item(), epoch * len(dataloader) + i)
+        writer.add_scalar('train acc',  acc,         epoch * len(dataloader) + i)
+
 
 
 def test_one_epoch(epoch, dataloader, model):
@@ -87,18 +95,23 @@ def test_one_epoch(epoch, dataloader, model):
 
         preds = preds.data.max(1)[1]
         correct = preds.eq(labels.data).cpu().sum()
+        acc = correct_all.item() / float(NUM_POINTS * len(dataloader))
         correct_all += correct
 
         printfreq = 1
         if i % printfreq == 0:
             print('[%d: %d] train loss: %f accuracy: %f' % (
-            i, len(dataloader), loss.data.item(), correct.item() / float(BATCH_SIZE * NUM_POINTS)))
+            i, len(dataloader), loss.item(), correct.item() / float(BATCH_SIZE * NUM_POINTS)))
 
-    count_all = BATCH_SIZE * NUM_POINTS * len(dataloader)
-    acc = correct_all.item() / float(count_all)
+        # log vis
+        writer.add_scalar('val loss', loss.item(), epoch * len(dataloader) + i)
+        writer.add_scalar('val acc',  acc,         epoch * len(dataloader) + i)
+
+    avg_acc = correct_all.item() / float(BATCH_SIZE * NUM_POINTS * len(dataloader))
+    writer.add_scalar('val avg_acc', avg_acc, epoch)
     print('avg accuracy: %f' % (acc))
 
-    return acc
+    return avg_acc
 
 
 def save_checkpoint(epoch, acc, model):
@@ -135,6 +148,7 @@ if __name__ == '__main__':
     if MODEL == 'pointnet':
         print('Loading PointNet.')
         model = PointNetSeg(num_points=NUM_POINTS, num_classes=NUM_CLASSES)
+    # default model is pointnet.
     else:
         print('Loading PointNet.')
         model = PointNetSeg(num_points=NUM_POINTS, num_classes=NUM_CLASSES)
