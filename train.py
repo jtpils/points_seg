@@ -121,8 +121,8 @@ def save_checkpoint(epoch, acc, model):
     checkpoint['epoch'] = epoch
     checkpoint['acc'] = acc
     checkpoint['model'] = model.state_dict()
-    if not os.path.isdir(checkpoint_path):
-        os.mkdir(checkpoint_path)
+    if not os.path.isdir(OUTPUT_PATH):
+        os.mkdir(OUTPUT_PATH)
     torch.save(checkpoint, checkpoint_path)
 
 def adjust_learning_rate(epoch, optimizer):
