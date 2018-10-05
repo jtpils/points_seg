@@ -6,7 +6,6 @@ import numpy as np
 # from dataset.vis  import draw_lidar_simple
 # import mayavi.mlab as mlab
 
-
 class LidarDataset(data.Dataset):
     def __init__(self, npoints = 4096, split = 'train'):
         self.npoints = npoints
@@ -15,12 +14,12 @@ class LidarDataset(data.Dataset):
         self.pathlist = []
 
         # load paths file
-        if self.split == 'train:':
-            self.pathfile = './data/example.txt'
+        if self.split == 'train':
+            self.pathfile = './data/train.txt'
         elif self.split == 'val':
-            self.pathfile = './data/example.txt'
+            self.pathfile = './data/val.txt'
         else:
-            self.pathfile = './data/example.txt'
+            self.pathfile = './data/test.txt'
 
         # read file paths
         with open(self.pathfile) as f:
@@ -33,21 +32,18 @@ class LidarDataset(data.Dataset):
         path = self.pathlist[index]
         data = np.load(path)
 
+        # if train/val, return fixed number points and labels
         # resample
         choice = np.random.choice(len(data), self.npoints, replace=True)
-
-        # if test, only return points
         points = data[choice, 0:4]
-        if self.split == 'test':
-            return points
-
-        # if train/val, return points and labels
         labels = data[choice, 4]
+
         return points, labels
 
 
     def __len__(self):
         return len(self.pathlist)
+
 
 
 

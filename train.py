@@ -95,7 +95,7 @@ def test_one_epoch(epoch, dataloader, model):
 
         preds = preds.data.max(1)[1]
         correct = preds.eq(labels.data).cpu().sum()
-        acc = correct_all.item() / float(NUM_POINTS * len(dataloader))
+        acc = correct.item() / float(NUM_POINTS * len(dataloader))
         correct_all += correct
 
         printfreq = 1
