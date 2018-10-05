@@ -109,7 +109,7 @@ def test_one_epoch(epoch, dataloader, model):
 
     avg_acc = correct_all.item() / float(BATCH_SIZE * NUM_POINTS * len(dataloader))
     writer.add_scalar('val avg_acc', avg_acc, epoch)
-    print('avg accuracy: %f' % (acc))
+    print('avg accuracy: %f' % (avg_acc))
 
     return avg_acc
 

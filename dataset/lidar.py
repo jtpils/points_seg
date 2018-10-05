@@ -14,12 +14,12 @@ class LidarDataset(data.Dataset):
         self.pathlist = []
 
         # load paths file
+        assert self.split == 'train' or self.split == 'val', 'no such a dataset split'
         if self.split == 'train':
             self.pathfile = './data/train.txt'
-        elif self.split == 'val':
-            self.pathfile = './data/val.txt'
         else:
-            self.pathfile = './data/test.txt'
+            self.pathfile = './data/val.txt'
+
 
         # read file paths
         with open(self.pathfile) as f:
