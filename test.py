@@ -83,6 +83,7 @@ if __name__ == '__main__':
     model = PointNetSeg(NUM_POINTS)
     checkpoint = torch.load('./checkpoint/pointnet.pth')
     model.load_state_dict(checkpoint['model'])
+    model.eval()
 
 
     filepaths = './data/test.txt'
@@ -94,6 +95,10 @@ if __name__ == '__main__':
             model.num_points = sub_points.size(2)
 
             sub_labels = model(sub_points)
+            sub_labels = sub_labels.detach()
+            sub_labels.squeeze_(0)
+            sub_labels = sub_labels.numpy()
+            sub_labels = np.argmax(sub_labels, axis=1)
             pre_labels[idx] = sub_labels
 
         np.savetxt(

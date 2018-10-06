@@ -24,14 +24,14 @@ OUTPUT_PATH = './checkpoints'
 GPU_ID = '0'
 
 # hyper paprams
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 EPOCH = 30
 MODEL = 'pointnet'
 NUM_POINTS = 8192
 NUM_CLASSES = 8
 GAMMA = 0.2
 MODEL_SET = set(['pointnet'])
-SCHEDULE = set([10, 20])
+SCHEDULE = set([5, 10])
 LEARNING_RATE = 0.001
 
 
