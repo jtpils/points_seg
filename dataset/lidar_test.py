@@ -7,20 +7,17 @@ import numpy as np
 # import mayavi.mlab as mlab
 
 class LidarDataset(data.Dataset):
-    def __init__(self, npoints = 4096, split = 'train'):
-        self.npoints = npoints
+    def __init__(self, split = 'test'):
         self.split = split
         self.pathfile = ''
         self.pathlist = []
 
         # load paths file
-        assert self.split == 'train' or self.split == 'val', 'no such a dataset split'
-        if self.split == 'train':
-            self.pathfile = './data/train.txt'
+        assert self.split == 'val1k' or self.split == 'test', 'no such a dataset split'
+        if self.split == 'val1k':
+            self.pathfile = './data/val_random_1k.txt'
         else:
-            self.pathfile = './data/val.txt'
-
-
+            self.pathfile = './data/test.txt'
 
         # read file paths
         with open(self.pathfile) as f:
@@ -33,15 +30,14 @@ class LidarDataset(data.Dataset):
         path = self.pathlist[index]
         data = np.load(path)
 
-        # if train/val, return fixed number points and labels
-        # resample
-        choice = np.random.choice(len(data), self.npoints, replace=True)
-        points = data[choice, 0:4]
-        labels = data[choice, 4]
-        return points, labels
+        # if test/val1k, return points and file index
+        points = data[:, 0:4]
+        return points, index
+
 
     def __len__(self):
         return len(self.pathlist)
+
 
 
 

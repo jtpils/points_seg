@@ -83,16 +83,21 @@ if __name__ == '__main__':
     model = PointNetSeg(NUM_POINTS)
     checkpoint = torch.load('./checkpoint/pointnet.pth')
     model.load_state_dict(checkpoint['model'])
+    model = model.cuda()
     model.eval()
 
 
     filepaths = './data/test.txt'
     out_dir = OUTPUT_PATH_ROOT
+    COUNT = 0
     for filename, points, idxes in testLoader(filepaths):
+        print('##### Processing Points: %d #####' % (COUNT))
+        COUNT += 1
         pre_labels = np.zeros((points.shape[0], ))
         for idx in idxes:
             sub_points = toTensor(points[idx])
-            model.num_points = sub_points.size(2)
+            sub_points = sub_points.cuda()
+            model.set_num_points(sub_points.size(2))
 
             sub_labels = model(sub_points)
             sub_labels = sub_labels.detach()

@@ -16,7 +16,6 @@ class STN_input(nn.Module):
         self.conv1 = nn.Conv1d(4,   64,   1)
         self.conv2 = nn.Conv1d(64,  128,  1)
         self.conv3 = nn.Conv1d(128, 1024, 1)
-        self.mp1 = nn.MaxPool1d(num_points)
         self.fc1 = nn.Linear(1024, 512)
         self.fc2 = nn.Linear(512,  256)
         self.fc3 = nn.Linear(256,  16)
@@ -33,7 +32,7 @@ class STN_input(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        x = self.mp1(x)
+        x = F.max_pool1d(x, self.num_points)
         x = x.view(-1, 1024)
 
         x = F.relu(self.bn4(self.fc1(x)))
@@ -54,7 +53,6 @@ class STN_feature(nn.Module):
         self.conv1 = nn.Conv1d(64,  64,   1)
         self.conv2 = nn.Conv1d(64,  128,  1)
         self.conv3 = nn.Conv1d(128, 1024, 1)
-        self.mp1 = nn.MaxPool1d(num_points)
         self.fc1 = nn.Linear(1024, 512)
         self.fc2 = nn.Linear(512,  256)
         self.fc3 = nn.Linear(256,  64*64)
@@ -70,7 +68,7 @@ class STN_feature(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        x = self.mp1(x)
+        x = F.max_pool1d(x, self.num_points)
         x = x.view(-1, 1024)
 
         x = F.relu(self.bn4(self.fc1(x)))
@@ -101,7 +99,6 @@ class PointNetSeg(nn.Module):
         self.conv7 = nn.Conv1d(512,  256,  1)
         self.conv8 = nn.Conv1d(256,  128,  1)
         self.conv9 = nn.Conv1d(128,  128,  1)
-        self.maxpool = nn.MaxPool1d(self.num_points)
         self.bn1 = nn.BatchNorm1d(64)
         self.bn2 = nn.BatchNorm1d(64)
         self.bn3 = nn.BatchNorm1d(64)
@@ -113,6 +110,11 @@ class PointNetSeg(nn.Module):
         self.bn9 = nn.BatchNorm1d(128)
         self.dropout = nn.Dropout(0.3)
         self.cls = nn.Conv1d(128, self.num_classes, 1)
+
+    def set_num_points(self, num_points):
+        self.num_points = num_points
+        self.stn1.num_points = num_points
+        self.stn2.num_points = num_points
 
 
 
@@ -141,7 +143,7 @@ class PointNetSeg(nn.Module):
         x = F.relu(self.bn3(self.conv3(x)))
         x = F.relu(self.bn4(self.conv4(x)))
         x = F.relu(self.bn5(self.conv5(x)))
-        globalfeat = self.maxpool(x)
+        globalfeat = F.max_pool1d(x, self.num_points)
         globalfeat = globalfeat.view(-1, 1024, 1).repeat(1, 1, self.num_points)
 
         x = torch.cat([pointfeat, globalfeat], 1)

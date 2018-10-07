@@ -10,6 +10,7 @@ import torch.optim as optim
 import torch.utils.data as Data
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+import torch.nn as nn
 from tensorboardX import SummaryWriter
 
 from dataset.lidar import LidarDataset
@@ -25,7 +26,7 @@ GPU_ID = '0'
 
 # hyper paprams
 BATCH_SIZE = 8
-EPOCH = 30
+EPOCH = 15
 MODEL = 'pointnet'
 NUM_POINTS = 8192
 NUM_CLASSES = 8
@@ -46,7 +47,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = GPU_ID
 
 
 
-def train_one_epoch(epoch, dataloader, optimizer, model):
+def train_one_epoch(epoch, dataloader, optimizer, model, criterion):
     print ('##### Train Epoch:%d #####' % (epoch))
     model.train()
 
@@ -61,7 +62,7 @@ def train_one_epoch(epoch, dataloader, optimizer, model):
         preds = model(points)
         preds = preds.view(-1, NUM_CLASSES)
         labels = labels.view(-1, 1)[:, 0]
-        loss = F.nll_loss(preds, labels)
+        loss = criterion(preds, labels)
         loss.backward()
         optimizer.step()
 
@@ -79,7 +80,7 @@ def train_one_epoch(epoch, dataloader, optimizer, model):
 
 
 
-def test_one_epoch(epoch, dataloader, model):
+def test_one_epoch(epoch, dataloader, model, criterion):
     print('##### Test Epoch:%d #####' % (epoch))
     model.eval()
     correct_all = 0
@@ -91,7 +92,7 @@ def test_one_epoch(epoch, dataloader, model):
         preds = model(points)
         preds = preds.view(-1, NUM_CLASSES)
         labels = labels.view(-1, 1)[:, 0]
-        loss = F.nll_loss(preds, labels)
+        loss = criterion(preds, labels)
 
         preds = preds.data.max(1)[1]
         correct = preds.eq(labels.data).cpu().sum()
@@ -157,11 +158,17 @@ if __name__ == '__main__':
     # define optimizer
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
+    # define loss function
+    weights = torch.FloatTensor([0.1, 5, 5, 1, 1, 5, 5])
+    criterion = nn.NLLLoss(weight=weights)
+
     best_acc = 0.0
     for epoch in range(EPOCH):
         adjust_learning_rate(epoch=epoch, optimizer=optimizer)
-        train_one_epoch(epoch=epoch, dataloader=trainloader, optimizer=optimizer, model=model)
-        acc = test_one_epoch(epoch=epoch, dataloader=valloader, model=model)
+        train_one_epoch(epoch=epoch, dataloader=trainloader, optimizer=optimizer,
+                        model=model, criterion=criterion)
+        acc = test_one_epoch(epoch=epoch, dataloader=valloader, model=model,
+                             criterion=criterion)
 
         if acc > best_acc:
             best_acc = acc
