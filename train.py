@@ -22,7 +22,7 @@ import utils
 RANDOM_SEED = 10000
 WORKERS = 2
 OUTPUT_PATH = './checkpoints'
-GPU_ID = '0'
+GPU_ID = '1'
 
 # hyper paprams
 BATCH_SIZE = 8
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
     # define loss function
-    weights = torch.FloatTensor([0.1, 5, 5, 1, 1, 5, 5])
+    weights = torch.FloatTensor([0.1, 5, 5, 1, 1, 5, 5, 5]).cuda()
     criterion = nn.NLLLoss(weight=weights)
 
     best_acc = 0.0
