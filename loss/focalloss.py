@@ -22,7 +22,7 @@ class FocalLoss(nn.Module):
         # check
         #logpt = F.log_softmax(input)
         logpt = input
-        logpt = logpt.gather(1,target)
+        logpt = logpt.gather(1, target)
         logpt = logpt.view(-1)
         pt = Variable(logpt.data.exp())
 
@@ -39,4 +39,7 @@ class FocalLoss(nn.Module):
 
 # need to debug !!!
 if __name__ == '__main__':
-    pass
+    input = torch.FloatTensor([[3, 1,10], [0.4, 0.1, 0.5]])
+    label = torch.LongTensor([2, 2])
+    loss = FocalLoss()
+    print (loss(input, label))

@@ -15,6 +15,7 @@ from tensorboardX import SummaryWriter
 
 from dataset.lidar import LidarDataset
 from model.pointnet import PointNetSeg
+from loss.focalloss import FocalLoss
 import utils
 
 
@@ -161,6 +162,7 @@ if __name__ == '__main__':
     # define loss function
     weights = torch.FloatTensor([0.1, 5, 5, 1, 1, 5, 5, 5]).cuda()
     criterion = nn.NLLLoss(weight=weights)
+    #criterion = FocalLoss(alpha=weights)
 
     best_acc = 0.0
     for epoch in range(EPOCH):

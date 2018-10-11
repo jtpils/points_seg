@@ -72,7 +72,8 @@ def testLoader(test_set_file):
     with open(test_set_file, 'r') as ptr:
         for test_file in ptr:
             filename = test_file.strip().split('/')[-1].split('.')[0]
-            points = np.load(test_file)
+            points = np.load(test_file[:-2])
+            points = points[0:4]
             lb_idx, rb_idx, lt_idx, rt_idx = dataSplit(points, state)
             yield (filename, points, (lb_idx, rb_idx, lt_idx, rt_idx))
 
@@ -81,13 +82,14 @@ def testLoader(test_set_file):
 if __name__ == '__main__':
     # load model
     model = PointNetSeg(NUM_POINTS)
-    checkpoint = torch.load('./checkpoint/pointnet.pth')
+    checkpoint = torch.load('./checkpoints/pointnet.pth')
     model.load_state_dict(checkpoint['model'])
     model = model.cuda()
     model.eval()
 
 
-    filepaths = './data/test.txt'
+    #filepaths = './data/test.txt'
+    filepaths = './data/val_random_1k.txt'
     out_dir = OUTPUT_PATH_ROOT
     COUNT = 0
     for filename, points, idxes in testLoader(filepaths):
