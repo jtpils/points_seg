@@ -12,6 +12,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 from model.pointnet import PointNetSeg
+from dataset.lidar_test import make_loader
 import utils
 
 
@@ -31,85 +32,50 @@ NUM_POINTS = 8192
 cudnn.benchmark = True
 os.environ['CUDA_VISIBLE_DEVICES'] = GPU_ID
 
-state = {
-    'x_min': -160.0,
-    'x_max': 160.0,
-    'y_min': -70.0,
-    'y_max': 70.0
-}
-
-def dataSplit(points, state):
-    def index(x_min, x_max, y_min, y_max):
-        return np.where(
-                (points[:, 0] >= x_min) & (points[:, 0] <= x_max) & (points[:, 1] >= y_min) & (points[:, 1] <= y_max)
-            )
-
-    # Inside the scope
-    # left bottom
-    x_min, x_max, y_min, y_max = state['x_min'], 0, state['y_min'], 0
-    lb_idx = index(x_min, x_max, y_min, y_max)
-
-    # right bottom
-    x_min, x_max, y_min, y_max = 0, state['x_max'], state['y_min'], 0
-    rb_idx = index(x_min, x_max, y_min, y_max)
-
-    # left top
-    x_min, x_max, y_min, y_max = state['x_min'], 0, 0, state['y_max']
-    lt_idx = index(x_min, x_max, y_min, y_max)
-
-    # right top
-    x_min, x_max, y_min, y_max = 0, state['x_max'], 0, state['y_max']
-    rt_idx = index(x_min, x_max, y_min, y_max)
-
-    return (lb_idx, rb_idx, lt_idx, rt_idx)
-
 
 def toTensor(points):
-    trans_tensor = torch.from_numpy(points).transpose_(1, 0)
-    return trans_tensor.unsqueeze_(0)
-
-def testLoader(test_set_file):
-    with open(test_set_file, 'r') as ptr:
-        for test_file in ptr:
-            filename = test_file.strip().split('/')[-1].split('.')[0]
-            points = np.load(test_file[:-2])
-            points = points[0:4]
-            lb_idx, rb_idx, lt_idx, rt_idx = dataSplit(points, state)
-            yield (filename, points, (lb_idx, rb_idx, lt_idx, rt_idx))
-
+    trans_tensor = torch.from_numpy(points).transpose_(1, 0)  # (N, C) -> (C, N)
+    return trans_tensor.unsqueeze_(0)  # (C, N) -> (1, C, N)
 
 
 if __name__ == '__main__':
     # load model
     model = PointNetSeg(NUM_POINTS)
-    checkpoint = torch.load('./checkpoints/pointnet.pth')
+    checkpoint = torch.load('./checkpoints/pointnet.pth', map_location='cpu')
     model.load_state_dict(checkpoint['model'])
     model = model.cuda()
     model.eval()
 
-
-    #filepaths = './data/test.txt'
-    filepaths = './data/val_random_1k.txt'
     out_dir = OUTPUT_PATH_ROOT
+    
+    testDataLoader = make_loader(split='test', batch_size=1, num_workers=0, shuffle=False)
     COUNT = 0
-    for filename, points, idxes in testLoader(filepaths):
+    for index, (points, labels, filenames) in enumerate(testDataLoader):
+
+        # print(len(points), points[0].shape)  # 1, (57888, 4)
+        # print(len(labels), len(labels[0]))  # 1, 4
+        # print(len(filenames), filenames[0])  # 1, 00029eea-54f4-4a60-9a15-a1a256f331b8_channelVELO_TOP
+
         print('##### Processing Points: %d #####' % (COUNT))
         COUNT += 1
-        pre_labels = np.zeros((points.shape[0], ))
-        for idx in idxes:
-            sub_points = toTensor(points[idx])
-            sub_points = sub_points.cuda()
-            model.set_num_points(sub_points.size(2))
 
-            sub_labels = model(sub_points)
-            sub_labels = sub_labels.detach()
-            sub_labels.squeeze_(0)
-            sub_labels = sub_labels.numpy()
-            sub_labels = np.argmax(sub_labels, axis=1)
-            pre_labels[idx] = sub_labels
+        pre_labels = np.zeros((points[0].shape[0], ))
+        for idx in range(4):
+            sub_points = points[0][labels[0][idx]]
+            if sub_points.shape[0] != 0:
+                sub_points = toTensor(sub_points)   # (1, C, N)
+                sub_points = sub_points.cuda()
+                model.set_num_points(sub_points.size(2))
+                
+                sub_labels = model(sub_points)
+                sub_labels = sub_labels.detach()
+                sub_labels.squeeze_(0)  # (N, 8)
+                sub_labels = sub_labels.cpu().numpy()
+                sub_labels = np.argmax(sub_labels, axis=1)
+                pre_labels[labels[0][idx]] = sub_labels
 
         np.savetxt(
-            os.path.join(out_dir, filename + '.csv'),
+            os.path.join(out_dir, filenames[0] + '.csv'),
             pre_labels,
             fmt='%d',
             delimiter=','
