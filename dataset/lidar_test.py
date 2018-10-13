@@ -38,19 +38,12 @@ def dataSplit(points, state):
 
     return (lb_idx, rb_idx, lt_idx, rt_idx)
 
-
-def islegal(points):
-    if points.shape[0] == 0:
-        return False
-    return True
-
-
 def toTensor(points):
     trans_tensor = torch.from_numpy(points).transpose_(1, 0)  # (N, C) -> (C, N)
     return trans_tensor.unsqueeze_(0)  # (C, N) -> (1, C, N)
 
 
-class testDataLoader(data.Dataset):
+class testDataSet(data.Dataset):
     def __init__(self, split='test'):
         self.split = split
         assert self.split == 'test' or self.split == 'val', print ('no such a split.')
@@ -87,11 +80,21 @@ class alignCollate(object):
 
         return points, idxes, filenames
 
+def make_loader(split='test', batch_size=1, num_workers=0, shuffle=False, collate_fn=alignCollate()):
+    return data.DataLoader(
+            testDataSet(split=split),
+            batch_size = batch_size,
+            num_workers = num_workers,
+            shuffle = shuffle,
+            collate_fn = collate_fn
+        )
+
 
 if __name__ == '__main__':
-    pointset = testDataLoader()
-    pointloader = data.DataLoader(pointset, batch_size=1, num_workers=0, shuffle=False, collate_fn=alignCollate())
-    print(len(pointset), len(pointloader))
+    # pointset = testDataSet()
+    # pointloader = data.DataLoader(pointset, batch_size=1, num_workers=0, shuffle=False, collate_fn=alignCollate())
+    pointloader = make_loader()
+    print(len(pointloader))
 
     for index, (points, labels, filenames) in enumerate(pointloader):
 
@@ -119,7 +122,7 @@ if __name__ == '__main__':
             # TODO: set point_nums
 
             sub_points = points[0][labels[0][idx]]
-            if islegal(sub_points):
+            if sub_points.shape[0] != 0:
                 sub_points = toTensor(sub_points)
                 print(sub_points.shape)
 
